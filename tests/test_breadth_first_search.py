@@ -1,55 +1,12 @@
 import unittest
-from algorithms.breadth_first_search import BreadthFirstSearch
+from algorithms import BreadthFirstSearch
 from problems.mock_problem import MockProblem
+from basic_test_problem import BasicTestProblem
 
-class TestBreadthFirstSearch(unittest.TestCase):
+class TestBreadthFirstSearch(BasicTestProblem):
     
     def setUp(self):
-        """Set up mock problems with various configurations."""
-        # Simple problem with a single path to the goal
-        self.simple_problem = MockProblem(
-            transitions={
-                1: [(2, 1), (3, 1)],
-                2: [(4, 1)],
-                3: [(4, 1)],
-                4: []
-            },
-            initial_state_id=1,
-            goal_state_id=4
-        )
-
-        # Problem with no path to the goal
-        self.unreachable_goal_problem = MockProblem(
-            transitions={
-                1: [(2, 1)],
-                2: [(3, 1)],
-                3: []  # No connection to state 4, so goal is unreachable
-            },
-            initial_state_id=1,
-            goal_state_id=4
-        )
-
-        # Problem with multiple paths to the goal
-        self.multi_path_problem = MockProblem(
-            transitions={
-                1: [(2, 1), (3, 1)],
-                2: [(4, 1)],
-                3: [(4, 1)],
-                4: []
-            },
-            initial_state_id=1,
-            goal_state_id=4
-        )
-
-        # Problem where the initial state is the goal
-        self.initial_is_goal_problem = MockProblem(
-            transitions={
-                    1: [(2, 1)],
-                    2: [(3, 1)]
-                },
-                initial_state_id=1,
-                goal_state_id=1  # Goal is the same as the initial state
-        )
+        super().setUp()
 
     def test_single_path_to_goal(self):
         """Test BFS on a problem with a single path to the goal."""
@@ -58,6 +15,9 @@ class TestBreadthFirstSearch(unittest.TestCase):
         result = bfs.retrieve_result()
         self.assertTrue(success)
         self.assertTrue(self.simple_problem.is_goal(result))
+        self.assertEqual(bfs.get_nodes_retrieved(), 3)
+        self.assertEqual(self.simple_problem.discovered_transitions,
+                         [(1,2), (1,3), (1,4), (2,5), (2,6), (3,7), (3,8)])
 
     def test_no_path_to_goal(self):
         """Test BFS when there is no path to the goal."""
@@ -66,6 +26,10 @@ class TestBreadthFirstSearch(unittest.TestCase):
         result = bfs.retrieve_result()
         self.assertFalse(success)
         self.assertIsNone(result)
+        self.assertEqual(bfs.get_nodes_retrieved(), 14)
+        self.assertEqual(self.unreachable_goal_problem.discovered_transitions,
+                         [(1,2), (1,3), (1,4), (2,5), (2,6), (3,7), (3,8), (4,9), (4,10),
+                          (5,11), (5,12), (6,13), (6,14)])
 
     def test_multiple_paths_to_goal(self):
         """Test BFS on a problem with multiple paths, ensuring shortest path is chosen."""
@@ -73,14 +37,9 @@ class TestBreadthFirstSearch(unittest.TestCase):
         success = bfs.search(self.multi_path_problem)
         result = bfs.retrieve_result()
         self.assertTrue(success)
-        self.assertTrue(self.simple_problem.is_goal(result))
-
-    def test_correct_order_of_expansion(self):
-        """Ensure BFS explores states in layer-by-layer order."""
-        bfs = BreadthFirstSearch()
-        bfs.search(self.simple_problem)
-        # Check the order of expansion
-        self.assertEqual(set(self.simple_problem.discovered_transitions),set([(1, 2), (1, 3), (2, 4)]))
+        self.assertTrue(self.multi_path_problem.is_goal(result))
+        self.assertEqual(bfs.get_nodes_retrieved(), 3)
+        self.assertEqual(self.multi_path_problem.discovered_transitions,[(1,2), (1,3), (1,4), (2,5), (2,6), (3,7), (3,8)])
 
     def test_initial_state_is_goal(self):
         """Test BFS when the initial state is the goal."""
@@ -88,8 +47,10 @@ class TestBreadthFirstSearch(unittest.TestCase):
         success = bfs.search(self.initial_is_goal_problem)
         result = bfs.retrieve_result()
         self.assertTrue(success)
+        self.assertTrue(self.initial_is_goal_problem.is_goal(result))
         self.assertEqual(result, self.initial_is_goal_problem.get_initial_state())  # Ensure it returns the initial state as the goal
-
+        self.assertEqual(bfs.get_nodes_retrieved(), 0)
+        self.assertEqual(self.initial_is_goal_problem.discovered_transitions,[])
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,7 +2,12 @@ from abc import ABC, abstractmethod
 
 class SearchAlgorithm(ABC):
     """Abstract base class for search algorithms with generalized success evaluation."""
-
+    
+    def __init__(self):
+        self.nodes_retrieved = 0
+        self.nodes_expanded = 0
+        self.nodes_evaluated = 0
+    
     def search(self, problem):
         """Template method for general search, handling both goal-based and reward-based searches."""
         self.initialize(problem)  # Reset any search-specific state
@@ -31,19 +36,31 @@ class SearchAlgorithm(ABC):
     @abstractmethod
     def next_node(self):
         """Set the next node to visit by updating self.current_node."""
-        pass
+        self.nodes_retrieved += 1
 
     @abstractmethod
     def evaluate_node(self):
         """Generalized success evaluation (goal-check or reward maximization).
            Each subclass will handle its own tracking of best nodes or stopping conditions."""
-        pass
+        self.nodes_evaluated += 1
 
     @abstractmethod
     def expand_node(self):
         """Expand the current node by adding its neighbors."""
-        pass
+        self.nodes_expanded += 1
 
     def finish(self):
         """Optional cleanup after search completes. Subclasses can override if needed."""
         pass
+    
+    def get_nodes_retrieved(self):
+        return self.nodes_retrieved
+
+    def get_nodes_expanded(self):
+        return self.nodes_expanded
+    
+    def get_nodes_evaluated(self):
+        return self.nodes_evaluated
+
+    
+    
